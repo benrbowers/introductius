@@ -1,0 +1,18 @@
+{
+  "name": "Introductius",
+  "version": "1.0.0",
+  "description": "He who introduces",
+  "main": "src/index.js",
+  "repository": "https://github.com/benrbowers/Introductius.git",
+  "author": "Benjamin R Bowers <benjambowers@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon ./src/index.js",
+    "start": "node ./src/index.js",
+    "lavalink": "java -jar Lavalink.jar"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
