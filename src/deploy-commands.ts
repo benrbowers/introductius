@@ -4,7 +4,12 @@ import { Routes }  from 'discord-api-types/v9';
 import { applicationId, guildId, token } from '../config.json';
 
 const commands = [
-	new SlashCommandBuilder().setName('bitch').setDescription('A fiendish insult!')
+	new SlashCommandBuilder().setName('bitch').setDescription('A fiendish insult!'),
+    new SlashCommandBuilder()
+        .setName('play')
+        .setDescription('Play a video in the vc')
+        .addStringOption(option => option.setName('query').setDescription('Your search query or video url').setRequired(true))
+        .addIntegerOption(option => option.setName('start').setDescription('Start time in seconds')),
 ];
 
 const rest = new REST({ version: '9' }).setToken(token);
