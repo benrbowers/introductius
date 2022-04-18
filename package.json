@@ -2,17 +2,27 @@
   "name": "Introductius",
   "version": "1.0.0",
   "description": "He who introduces",
-  "main": "src/index.js",
+  "main": "index.js",
   "repository": "https://github.com/benrbowers/Introductius.git",
   "author": "Benjamin R Bowers <benjambowers@gmail.com>",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "nodemon ./src/index.js",
-    "start": "node ./src/index.js",
+    "dev": "nodemon dist/src/index.js",
+    "start": "node dist/src/index.js",
+    "watch": "tsc -w",
+    "build": "tsc",
+    "commands": "node dist/src/deploy-commands.js",
     "lavalink": "java -jar Lavalink.jar"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "@discordjs/builders": "^0.13.0",
+    "@discordjs/rest": "^0.4.1",
+    "discord-api-types": "^0.31.1",
+    "discord.js": "^13.6.0"
   }
 }
