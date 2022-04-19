@@ -10,6 +10,7 @@ const commands = [
         .setDescription('Play a video in the vc')
         .addStringOption(option => option.setName('query').setDescription('Your search query or video url').setRequired(true))
         .addIntegerOption(option => option.setName('start').setDescription('Start time in seconds')),
+    new SlashCommandBuilder().setName('pause').setDescription('Pause/Resume Introductius'),
 ];
 
 const rest = new REST({ version: '9' }).setToken(token);
