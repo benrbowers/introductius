@@ -10,10 +10,14 @@
   "scripts": {
     "dev": "nodemon dist/src/index.js",
     "start": "node dist/src/index.js",
+    "startPM2": "pm2 start dist/src/index.js --name=Introductius",
+    "stopPM2": "pm2 stop dist/src/index.js",
     "watch": "tsc -w",
     "build": "tsc",
     "commands": "node dist/src/deploy-commands.js",
-    "lavalink": "java -jar Lavalink.jar"
+    "lavalink": "java -jar Lavalink.jar",
+    "lavalinkPM2": "pm2 start lavalink.sh --name=lavalink",
+    "stopLavalinkPM2": "pm2 stop lavalink"
   },
   "devDependencies": {
     "nodemon": "^2.0.15",
@@ -25,6 +29,7 @@
     "discord-api-types": "^0.31.1",
     "discord.js": "^13.6.0",
     "erela.js": "^2.3.3",
-    "mongodb": "^4.5.0"
+    "mongodb": "^4.5.0",
+    "pm2": "^5.2.0"
   }
 }
