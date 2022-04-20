@@ -1,12 +1,13 @@
 import { Client, GuildMember, Intents } from 'discord.js';
 import { Manager, Player, SearchResult, Track } from 'erela.js';
-import { token } from '../config.json';
+import { MongoClient } from 'mongodb';
+import { guildId, heWhoIntrosId, token } from '../config.json';
 
 interface ClientWithManager extends Client {
     manager?: Manager;
 }
 
-const client: ClientWithManager = new Client({ intents: Intents.FLAGS.GUILDS + Intents.FLAGS.GUILD_VOICE_STATES });
+const client: ClientWithManager = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_VOICE_STATES] });
 
 client.manager = new Manager({
     nodes: [
@@ -25,9 +26,6 @@ client.manager = new Manager({
     .on("nodeError", (node, error) => console.log(`Node ${node.options.identifier} had an error: ${error.message}`));
 
  client.on("raw", (d) => client.manager?.updateVoiceState(d));
-
-
-
 
 client.once('ready', () => {
     console.log('Introductius is ready!');
@@ -53,11 +51,18 @@ client.on('interactionCreate', async (interaction) => {
     if (commandName === 'bitch') {
         interaction.reply('Fuck you. You called me a bitch');
     } else if (commandName === 'play') {
+        player.pause(false);
         player.stop();
+        
         const res = await client.manager?.search(
             interaction.options.data[0].value as string,
             interaction.member?.user
         ) as SearchResult;
+
+        if (res.tracks.length === 0) {
+            interaction.reply('Found no results for: ' + interaction.options.data[0].value);
+            return;
+        }
 
         currentTrack = res.tracks[0];
 
@@ -86,7 +91,109 @@ client.on('interactionCreate', async (interaction) => {
             interaction.reply(`Resumed ${currentTrack.title}.`);
         }
         
+    } 
+    else if (commandName === 'intro') {
+        const url = interaction.options.data[0].value;
+        let start = 0;
+        let duration = 6;
+
+        interaction.options.data.forEach((option) => {
+            if (option.name === 'start') {
+                start = option.value as number;
+            } else if (option.name === 'duration' && (option.value as number) <= 6) {
+                duration = option.value as number;
+            }
+        })
+        const mongo = new MongoClient('mongodb://0.0.0.0:27017');
+
+        try {
+            await mongo.connect();
+
+            const db = mongo.db('Introductius');
+            const intros = db.collection('intros');
+
+            const existingIntro = await intros.findOne({ user: interaction.user.id });
+
+            if (existingIntro === null) {
+                await intros.insertOne({
+                    user: interaction.user.id,
+                    url,
+                    start,
+                    duration
+                });
+            } else {
+                await intros.findOneAndReplace({ user: interaction.user.id },  {
+                    user: interaction.user.id,
+                    url,
+                    start,
+                    duration
+                });
+            }
+
+            interaction.reply('Intro created succcessfully.')
+        } catch (e) {
+            console.error(e);
+            interaction.reply('There was an issue creating your intro: ' + e.message)
+        } finally {
+            await mongo.close();
+        }
     }
-});
+})
+
+client.on('voiceStateUpdate', async (oldState, newState) => {
+    if (newState.channelId === null || oldState.channelId === newState.channelId) {
+        return;
+    }
+
+    const mongo = new MongoClient('mongodb://0.0.0.0:27017');
+
+    try {
+        await mongo.connect();
+
+        const db = mongo.db('Introductius');
+        const intros = db.collection('intros');
+
+        const intro = await intros.findOne({ user: newState.member?.user.id });
+        
+        if (intro === null) {
+            return;
+        } else {
+            const player = client.manager?.create({
+                guild: guildId,
+                voiceChannel: newState.channelId,
+                textChannel: heWhoIntrosId
+            }) as Player;
+
+            player.pause(false);
+            player.stop();
+
+            const res = await client.manager?.search(
+                intro.url,
+                newState.member?.user
+            ) as SearchResult;
+    
+            if (res.tracks.length === 0) {
+                return;
+            }
+
+            // Adds the first track to the queue.
+            player.queue.add(res.tracks[0]);
+            player.queue.at
+
+            player.play();
+            if (intro.start > 0) {
+                player.seek(intro.start * 1000);
+            }
+
+            setTimeout(() => {
+                player.stop();
+            }, intro.duration * 1000)
+
+
+        }
+    } catch (e) {
+        console.error(e);
+    }
+})
 
 client.login(token);

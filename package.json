@@ -24,6 +24,7 @@
     "@discordjs/rest": "^0.4.1",
     "discord-api-types": "^0.31.1",
     "discord.js": "^13.6.0",
-    "erela.js": "^2.3.3"
+    "erela.js": "^2.3.3",
+    "mongodb": "^4.5.0"
   }
 }
