@@ -119,14 +119,16 @@ client.on('interactionCreate', async (interaction) => {
                     user: interaction.user.id,
                     url,
                     start,
-                    duration
+                    duration,
+                    lastUsed: 0,
                 });
             } else {
                 await intros.findOneAndReplace({ user: interaction.user.id },  {
                     user: interaction.user.id,
                     url,
                     start,
-                    duration
+                    duration,
+                    lastUsed: 0,
                 });
             }
 
@@ -154,6 +156,16 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         const intros = db.collection('intros');
 
         const intro = await intros.findOne({ user: newState.member?.user.id });
+
+        if (intro === null) {
+            return;
+        }
+
+        if (Date.now() - intro.lastUsed < 60 * 1000) {
+            return;
+        }
+
+        intros.updateOne({ user: intro.user }, { $set: { lastUsed: Date.now() }});
         
         if (intro === null) {
             return;
