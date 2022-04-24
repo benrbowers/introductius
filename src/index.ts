@@ -53,6 +53,10 @@ client.on('interactionCreate', async (interaction) => {
     }) as Player;
 
     if (commandName === 'play') {
+        player.setVoiceChannel(member.voice.channelId as string);
+
+        player.connect();
+
         if (member.voice.channelId !== player.voiceChannel) {
             interaction.reply('🦗 *crickets* 🦗 *crickets* 🦗');
             interaction.channel?.send('Nice try bud, but you need to be the SAME voice channel as me')
@@ -74,9 +78,6 @@ client.on('interactionCreate', async (interaction) => {
         currentTrack = res.tracks[0];
 
         interaction.reply(res.tracks[0].uri);
-
-        // Connect to the voice channel.
-        player.connect();
     
         // Adds the first track to the queue.
         player.queue.add(res.tracks[0]);
@@ -145,6 +146,9 @@ client.on('interactionCreate', async (interaction) => {
         } finally {
             await mongo.close();
         }
+    } else if (commandName === 'stop') {
+        player.disconnect();
+        interaction.reply('The player has been stopped.');
     }
 })
 
