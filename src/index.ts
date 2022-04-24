@@ -38,6 +38,12 @@ client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
 
     const member: GuildMember = interaction.member as GuildMember;
+    const { commandName } = interaction;
+
+    if (member.voice.channelId === null && commandName !== 'intro') {
+        interaction.reply('You need to be in a voice channel to use that you silly little human');
+        return;
+    }
 
     // Create a new player. This will return the player if it already exists.
     const player = client.manager?.create({
@@ -46,11 +52,12 @@ client.on('interactionCreate', async (interaction) => {
         textChannel: interaction.channel?.id as string,
     }) as Player;
 
-    const { commandName } = interaction;
-
-    if (commandName === 'bitch') {
-        interaction.reply('Fuck you. You called me a bitch');
-    } else if (commandName === 'play') {
+    if (commandName === 'play') {
+        if (member.voice.channelId !== player.voiceChannel) {
+            interaction.reply('🦗 *crickets* 🦗 *crickets* 🦗');
+            interaction.channel?.send('Nice try bud, but you need to be the SAME voice channel as me')
+            return;
+        }
         player.pause(false);
         player.stop();
         
@@ -73,7 +80,6 @@ client.on('interactionCreate', async (interaction) => {
     
         // Adds the first track to the queue.
         player.queue.add(res.tracks[0]);
-        player.queue.at
         interaction.channel?.send(`Enqueuing track ${res.tracks[0].title}.`);
     
         // Plays the player (plays the first track in the queue).
@@ -176,6 +182,10 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
                 textChannel: heWhoIntrosId
             }) as Player;
 
+            if (newState.channelId !== player.voiceChannel) {
+                return;
+            }
+
             player.pause(false);
             player.stop();
 
@@ -199,7 +209,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
             setTimeout(() => {
                 player.stop();
-            }, intro.duration * 1000)
+            }, intro.duration * 1000 + 500);
 
 
         }
