@@ -1,5 +1,5 @@
 import { Client, GuildMember, Intents } from 'discord.js';
-import { Manager, Player, SearchResult, Track } from 'erela.js';
+import { Manager, Player, SearchResult } from 'erela.js';
 import { MongoClient } from 'mongodb';
 import { guildId, heWhoIntrosId, token } from '../config.json';
 
@@ -20,7 +20,8 @@ client.manager = new Manager({
     send(id, payload) {
         const guild = client.guilds.cache.get(id);
         if (guild) guild.shard.send(payload);
-      },
+    },
+    autoPlay: true,
 })
     .on("nodeConnect", node => console.log(`Node ${node.options.identifier} connected`))
     .on("nodeError", (node, error) => console.log(`Node ${node.options.identifier} had an error: ${error.message}`));
@@ -31,8 +32,6 @@ client.once('ready', () => {
     console.log('Introductius is ready!');
     client.manager?.init(client.user?.id);
 });
-
-let currentTrack: Track;
 
 client.on('interactionCreate', async (interaction) => {
     if (!interaction.isCommand()) return;
@@ -59,7 +58,7 @@ client.on('interactionCreate', async (interaction) => {
 
         if (member.voice.channelId !== player.voiceChannel) {
             interaction.reply('🦗 *crickets* 🦗 *crickets* 🦗');
-            interaction.channel?.send('Nice try bud, but you need to be the SAME voice channel as me')
+            interaction.channel?.send('Nice try bud, but you need to be the SAME voice channel as me');
             return;
         }
         player.pause(false);
@@ -75,8 +74,6 @@ client.on('interactionCreate', async (interaction) => {
             return;
         }
 
-        currentTrack = res.tracks[0];
-
         interaction.reply(res.tracks[0].uri);
     
         // Adds the first track to the queue.
@@ -91,13 +88,19 @@ client.on('interactionCreate', async (interaction) => {
             player.seek((interaction.options.data[1].value as number) * 1000);
         }
     } else if (commandName === 'pause') {
-        player.pause(!player.paused);
-        if (player.paused) {
-            interaction.reply(`Paused ${currentTrack.title}.`);
-        } else {
-            interaction.reply(`Resumed ${currentTrack.title}.`);
+        if (!player.queue.current) {
+            interaction.reply('There is currently no track to pause');
+            return;
         }
-        
+        player.pause(!player.paused);
+        if (!player.playing && !player.paused && !player.queue.size) {
+            player.play();
+        }
+        if (player.paused) {
+            interaction.reply(`Paused ${player.queue.current.title}.`);
+        } else {
+            interaction.reply(`Resumed ${player.queue.current.title}.`);
+        } 
     } 
     else if (commandName === 'intro') {
         const url = interaction.options.data[0].value;
@@ -149,6 +152,108 @@ client.on('interactionCreate', async (interaction) => {
     } else if (commandName === 'stop') {
         player.disconnect();
         interaction.reply('The player has been stopped.');
+    } else if (commandName === 'skip') {
+        if (!player.queue.current) {
+            interaction.reply('There is no track to skip.');
+            return;
+        }
+
+        interaction.reply('Skipping: ' + player.queue.current.title);
+        player.stop();
+        if (!player.playing && !player.paused && !player.queue.size) {
+            player.play();
+        }
+        interaction.channel?.send('Queue length: ' + player.queue.size);
+        
+    } else if (commandName === 'previous' && player.queue.previous !== null) {
+        interaction.channel?.send('Queue length: ' + player.queue.size);
+        if (!player.playing && !player.paused && !player.queue.size) {
+            player.play();
+        }
+        interaction.reply('Now playing: ' + player.queue.current?.title);
+        interaction.channel?.send('Queue length: ' + player.queue.size);
+
+    } else if (commandName === 'queue') {
+        const res = await client.manager?.search(
+            interaction.options.data[0].value as string,
+            interaction.member?.user
+        ) as SearchResult;
+
+        if (res.tracks.length === 0) {
+            interaction.reply('Found no results for: ' + interaction.options.data[0].value);
+            return;
+        }
+
+        player.queue.add(res.tracks[0]);
+
+        [...player.queue.entries()].forEach(entry => {
+            const position = entry[0];
+            const track = entry[1];
+
+            console.log(position + ' - ' + track.title);
+        });
+
+        interaction.reply(res.tracks[0].title + ' by ' + res.tracks[0].author + ' has been added to the queue.');
+
+    } else if (commandName === 'play-next') {
+        const res = await client.manager?.search(
+            interaction.options.data[0].value as string,
+            interaction.member?.user
+        ) as SearchResult;
+
+        if (res.tracks.length === 0) {
+            interaction.reply('Found no results for: ' + interaction.options.data[0].value);
+            return;
+        }
+
+        player.queue.add(res.tracks[0], 0);
+
+        [...player.queue.entries()].forEach(entry => {
+            const position = entry[0];
+            const track = entry[1];
+
+            console.log(position + ' - ' + track.title);
+        });
+
+        interaction.reply(res.tracks[0].title + ' by ' + res.tracks[0].author + ' will play next.');
+    } else if (commandName === 'search') {
+        const res = await client.manager?.search(
+            interaction.options.data[0].value as string,
+            interaction.member?.user
+        ) as SearchResult;
+
+        if (res.tracks.length === 0) {
+            interaction.reply('Found no results for: ' + interaction.options.data[0].value);
+            return;
+        }
+
+        let reply = '';
+        let page = 1;
+        const pageCount = Math.ceil((res.tracks.length) / 10);
+
+        if (interaction.options.data.length > 1) {
+            page = interaction.options.data[1].value as number;
+
+            if (page > pageCount) {
+                interaction.reply('Cannot display page ' + page + '. There are only ' + pageCount + ' pages.');
+                return;
+            }
+        }
+
+        reply += `Page ${page} of ${pageCount}:\n\n`;
+
+        if (page === pageCount) {
+            for (let i = (page - 1) * 10; i < res.tracks.length; i++) {
+                reply += `${res.tracks[i].title} by ${res.tracks[i].author}\n`;
+            }
+
+        } else {
+            for (let i = (page - 1) * 10; i < page * 10; i++) {
+                reply += `${res.tracks[i].title} by ${res.tracks[i].author}\n`;
+            }
+        }
+
+        interaction.reply(reply);
     }
 })
 
@@ -204,7 +309,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
             // Adds the first track to the queue.
             player.queue.add(res.tracks[0]);
-            player.queue.at
 
             player.play();
             if (intro.start > 0) {
