@@ -1,7 +1,7 @@
 import { Client, GuildMember, Intents } from 'discord.js';
 import { Manager, Player, SearchResult } from 'erela.js';
 import { MongoClient } from 'mongodb';
-import { guildId, heWhoIntrosId, token } from '../config.json';
+import { token } from '../config.json';
 
 interface ClientWithManager extends Client {
     manager?: Manager;
@@ -262,6 +262,10 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         return;
     }
 
+    if (!newState.member) return;
+
+    const guildId = newState.member.guild.id;
+
     const mongo = new MongoClient('mongodb://0.0.0.0:27017');
 
     try {
@@ -288,7 +292,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
             const player = client.manager?.create({
                 guild: guildId,
                 voiceChannel: newState.channelId,
-                textChannel: heWhoIntrosId
+                textChannel: '',
             }) as Player;
 
             if (newState.channelId !== player.voiceChannel) {
