@@ -1,5 +1,7 @@
 {
     "token": "",
     "applicationId": "",
-    "guildId": ""
+    "guildId": "",
+	"mongoHost": "0.0.0.0",
+	"mongoPort": "27017"
 }

@@ -1,7 +1,7 @@
 import { Client, GuildMember, Intents } from 'discord.js';
 import { Manager, Player, SearchResult } from 'erela.js';
 import { MongoClient } from 'mongodb';
-import { token } from '../config.json';
+import { token, mongoHost, mongoPort } from '../config.json';
 
 interface ClientWithManager extends Client {
     manager?: Manager;
@@ -23,8 +23,8 @@ client.manager = new Manager({
     },
     autoPlay: true,
 })
-    .on("nodeConnect", node => console.log(`Node ${node.options.identifier} connected`))
-    .on("nodeError", (node, error) => console.log(`Node ${node.options.identifier} had an error: ${error.message}`));
+    .on("nodeConnect", node => console.log(`Node ${node.options.identifier} "Lavalink" connected`))
+    .on("nodeError", (node, error) => console.log(`Node ${node.options.identifier} "Lavalink" had an error: ${error.message}`));
 
  client.on("raw", (d) => client.manager?.updateVoiceState(d));
 
@@ -61,8 +61,9 @@ client.on('interactionCreate', async (interaction) => {
             interaction.channel?.send('Nice try bud, but you need to be the SAME voice channel as me');
             return;
         }
-        player.pause(false);
+
         player.stop();
+        player.pause(true);
         
         const res = await client.manager?.search(
             interaction.options.data[0].value as string,
@@ -81,12 +82,12 @@ client.on('interactionCreate', async (interaction) => {
         interaction.channel?.send(`Enqueuing track ${res.tracks[0].title}.`);
     
         // Plays the player (plays the first track in the queue).
-        // The if statement is needed else it will play the current track again
-        if (!player.playing && !player.paused && !player.queue.size)
-            player.play();
+        player.play();
+            
         if (interaction.options.data.length > 1) {
             player.seek((interaction.options.data[1].value as number) * 1000);
         }
+        player.pause(false);
     } else if (commandName === 'pause') {
         if (!player.queue.current) {
             interaction.reply('There is currently no track to pause');
@@ -114,7 +115,7 @@ client.on('interactionCreate', async (interaction) => {
                 duration = option.value as number;
             }
         })
-        const mongo = new MongoClient('mongodb://0.0.0.0:27017');
+        const mongo = new MongoClient(`mongodb://${mongoHost}:${mongoPort}`);
 
         try {
             await mongo.connect();
@@ -266,7 +267,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
     const guildId = newState.member.guild.id;
 
-    const mongo = new MongoClient('mongodb://0.0.0.0:27017');
+    const mongo = new MongoClient(`mongodb://${mongoHost}:${mongoPort}`);
 
     try {
         await mongo.connect();
@@ -299,9 +300,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
                 return;
             }
 
-            player.pause(false);
-            player.stop();
-
             const res = await client.manager?.search(
                 intro.url,
                 newState.member?.user
@@ -311,17 +309,19 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
                 return;
             }
 
-            // Adds the first track to the queue.
-            player.queue.add(res.tracks[0]);
-
-            player.play();
+            player.connect();
+            player.stop();
+            player.pause(true);
+            player.play(res.tracks[0]);
             if (intro.start > 0) {
                 player.seek(intro.start * 1000);
             }
+            player.pause(false);
+
 
             setTimeout(() => {
                 player.stop();
-            }, intro.duration * 1000 + 500);
+            }, intro.duration * 1000);
 
 
         }
