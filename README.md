@@ -1,6 +1,8 @@
-# Introductius
+# Introductius - A Discord bot
 
-Introductius is Discord bot that introduces users who join a voice channel using an up to 6 second clip set by the user. This project uses [Lavalink](https://github.com/freyacodes/Lavalink) to get audio from YouTube. [DiscordJS](https://discord.js.org/#/) and [ErelaJS](https://erelajs-docs.netlify.app/) are used to interact with the Discord API. Also, for no other reason than the libraries used for this project allow it, Introductius also serves as a lightweight music player (For example, the popular "FredBoat" music bot uses lavalink).
+Introductius is Discord bot that introduces users who join a voice channel using an up to 6 second clip set by the user. This project uses [Lavalink](https://github.com/freyacodes/Lavalink) to get audio from YouTube. [DiscordJS](https://discord.js.org/#/) and [ErelaJS](https://erelajs-docs.netlify.app/) are used to interact with the Discord API.
+
+Also, for no other reason than the libraries used for this project allow it, Introductius also serves as a lightweight music player (For example, the popular "FredBoat" music bot uses lavalink). In general, I would reccomend using a bot specifically dedicated to being a music player, but as Introductius is still very much in development, the music player functions are useful for checking that Introductius can properly connect to a channel and play sound.
 
 ## Installation
 Introductius is not currently an official discord bot, so if you want him in your server you'll have to host him yourself. The cheapest solution is likely to host Introductius locally on a Raspberry Pi, however I can't speak for the connection quality of that method. For my server, I've purchased a $6 per month VPS instance from [Vultr](https://www.vultr.com/). I chose a server location in my part of the country and the connection quality seems to be more than enough for my friends and I.
