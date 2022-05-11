@@ -90,4 +90,10 @@ Use this stop him:
 ```
 yarn stopPM2
 ```
+### Step 5: Register Commands
+Run:
+```
+yarn commands
+```
+To check that the commands were registered correctly, go to a text channel and type "/". You should see Introductius (or whatever you named your application) listed alongside any other bots in your server with slash commands. Find out how to use the commands in the next section.
 
