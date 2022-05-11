@@ -15,7 +15,7 @@ Run this to clone the repo:
 gh repo clone benrbowers/introductius
 ```
 ### Step 2: Install Dependencies
-[Here's the official guide for installing nodejs and discordjs]
+[Here's the official guide for installing nodejs and discordjs](https://discordjs.guide/preparations/)
 
 Once node and npm are installed you can install the dependencies. I used yarn for this project, but you can use npm if you prefer. Run the following in a terminal from the root project directory:
 
@@ -35,25 +35,24 @@ You'll be able to set your hostname and port number when you set up your config 
 ### Step 1: Register Discord Application
 Like all bots, Introductius must be registered as an application to interact with the Discord API.
 
-[Follow the official guide here.](https://discordjs.guide/preparations/setting-up-a-bot-application.html)
-[Create a new application here.](https://discord.com/developers/applications)
+- [Follow the official guide here.](https://discordjs.guide/preparations/setting-up-a-bot-application.html)
+- [Create a new application here.](https://discord.com/developers/applications)
 
 You can name the application "Introductius" or whatever you like, the name won't affect anything.
 ### Step 2: Create config file
 Create a new file in the root directory called `config.json`. Then, copy and paste the following:
 ```
 {
-  "token": "YOUR_TOKEN",
+	"token": "YOUR_TOKEN",
 	"applicationId": "YOUR_APP_ID",
 	"guildId": "YOUR_GUILD_ID",
 	"mongoHost": "0.0.0.0",
 	"mongoPort": "27017"
 }
 ```
-Replace `YOUR_TOKEN` with your bot token which you can find as per [this guide.](https://discordjs.guide/preparations/setting-up-a-bot-application.html#your-token)
-Replace `YOUR_APP_ID' with the application id for your newly created application which you can find in the "General Information" section for application in the [Discord developer portal.](https://discord.com/developers/applications)
-
-"Guild" in discord lingo just means "server," so "guildId" refers to your server ID. In order to get your guild (server) id, open Discord and go to your settings. On the "Advanced" page, turn on "Developer Mode". This will enable a "Copy ID" button in the context menu when you right-click on a server icon, a user's profile, etc. Right click on the server icon that you want to add Introductius to and select "Copy ID". Replace `YOUR_GULD_ID` with that id.
+- Replace `YOUR_TOKEN` with your bot token which you can find as per [this guide.](https://discordjs.guide/preparations/setting-up-a-bot-application.html#your-token)
+- Replace `YOUR_APP_ID` with the application id for your newly created application which you can find in the "General Information" section for application in the [Discord developer portal.](https://discord.com/developers/applications)
+- "Guild" in discord lingo just means "server," so "guildId" refers to your server ID. In order to get your guild (server) id, open Discord and go to your settings. On the "Advanced" page, turn on "Developer Mode". This will enable a "Copy ID" button in the context menu when you right-click on a server icon, a user's profile, etc. Right click on the server icon that you want to add Introductius to and select "Copy ID". Replace `YOUR_GULD_ID` with that id.
 
 ### Step 3: Start Lavalink
 Lavalink is the service that allows Introductius
