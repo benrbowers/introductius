@@ -106,12 +106,12 @@ client.on('interactionCreate', async (interaction) => {
     else if (commandName === 'intro') {
         const url = interaction.options.data[0].value;
         let start = 0;
-        let duration = 6;
+        let duration = 8;
 
         interaction.options.data.forEach((option) => {
             if (option.name === 'start') {
                 start = option.value as number;
-            } else if (option.name === 'duration' && (option.value as number) <= 6) {
+            } else if (option.name === 'duration' && (option.value as number) <= 8) {
                 duration = option.value as number;
             }
         })
@@ -311,19 +311,27 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
             player.connect();
             player.stop();
-            player.pause(true);
             player.play(res.tracks[0]);
-            if (intro.start > 0) {
-                player.seek(intro.start * 1000);
-            }
             player.pause(false);
 
+            if (intro.start > 0) {
+                player.seek(intro.start * 1000);
 
-            setTimeout(() => {
-                player.stop();
-            }, intro.duration * 1000);
-
-
+                const waitForSeekInterval = setInterval(() => {
+                    if (player.position > intro.start * 1000) {
+                        console.log('player.position: ', player.position);
+                        console.log('intro.start: ', intro.start);
+                        setTimeout(() => {
+                            player.stop();
+                        }, intro.duration * 1000 - (player.position - intro.start * 1000));
+                        clearInterval(waitForSeekInterval);
+                    }
+                }, 1000)
+            } else {
+                setTimeout(() => {
+                    player.stop();
+                }, intro.duration * 1000);
+            }
         }
     } catch (e) {
         console.error(e);
